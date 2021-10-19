@@ -51,15 +51,15 @@ class GeneticAlgorithm:
         return sorted(results.items(), key = operator.itemgetter(1), reverse = True)
 
 
-    def OrderParentsIndex(self, rankedPop, eliteSize):
+    def OrderParentsIndex(self, rankedPop, bestPopSize):
         selectionResults = []
         df = pd.DataFrame(np.array(rankedPop), columns=["Index","Value"])
         df['cum_sum'] = df.Value.cumsum()
         df['cum_perc'] = 100*df.cum_sum/df.Value.sum()
 
-        for i in range(0, eliteSize):
+        for i in range(0, bestPopSize):
             selectionResults.append(rankedPop[i][0])
-        for i in range(0, len(rankedPop) - eliteSize):
+        for i in range(0, len(rankedPop) - bestPopSize):
             pick = 100*random.random()
             for i in range(0, len(rankedPop)):
                 if pick <= df.iat[i,3]:
@@ -89,12 +89,12 @@ class GeneticAlgorithm:
         return child
 
 
-    def GenerateChildren(self, parents, eliteSize):
+    def GenerateChildren(self, parents, bestPopSize):
         children = []
-        length = len(parents) - eliteSize
+        length = len(parents) - bestPopSize
         pool = random.sample(parents, len(parents))
 
-        for i in range(0,eliteSize):
+        for i in range(0,bestPopSize):
             children.append(parents[i])
         
         for i in range(0, length):
@@ -123,20 +123,20 @@ class GeneticAlgorithm:
         return mutatedPop
 
 
-    def nextGeneration(self, curGen, eliteSize, mutationRate):
+    def nextGeneration(self, curGen, bestPopSize, mutationRate):
         popRanked = self.RankPop(curGen)
-        self.selectionResults = self.OrderParentsIndex(popRanked, eliteSize)
+        self.selectionResults = self.OrderParentsIndex(popRanked, bestPopSize)
         listParents = self.OrderParents(curGen, self.selectionResults)
-        listChildren = self.GenerateChildren(listParents, eliteSize)
+        listChildren = self.GenerateChildren(listParents, bestPopSize)
         nextGeneration = self.MutatePopulation(listChildren, mutationRate)
         return nextGeneration
 
-    def Start(self, pop, popSize, eliteSize, mutationRate, generations):
+    def Start(self, pop, popSize, bestPopSize, mutationRate, generations):
         pop = CreateFirstGeneration(popSize, pop)
         print("Initial distance: " + str(1 / self.RankPop(pop)[0][1]))
         
         for i in range(0, generations):
-            pop = self.nextGeneration(pop, eliteSize, mutationRate)
+            pop = self.nextGeneration(pop, bestPopSize, mutationRate)
         
         print("Final distance: " + str(1 / self.RankPop(pop)[0][1]))
         bestRouteIndex = self.RankPop(pop)[0][0]
@@ -177,20 +177,36 @@ if __name__ == "__main__":
     }
 
 
-    cityList = []
+    placeList = []
     for mi in medicalInstitutions:
-        cityList.append(Place(mi, x=medicalInstitutions[mi][0], y=medicalInstitutions[mi][1]))
+        placeList.append(Place(mi, x=medicalInstitutions[mi][0], y=medicalInstitutions[mi][1]))
 
-    firstRoute = createRoute(cityList)
+    firstRoute = createRoute(placeList)
 
-    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=100, eliteSize=20, mutationRate=0.05, generations=500)
-    print([b.name for b in bestRoute])
+    print("List of places:")
+    for p in placeList:
+        print(p.name)
+    
+    popSize = 120
+    bestPopSize = 30
+    mutationRate = 0.1
+    generations = 00
 
-    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=100, eliteSize=20, mutationRate=0.05, generations=500)
-    print([b.name for b in bestRoute])
 
-    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=100, eliteSize=20, mutationRate=0.05, generations=500)
-    print([b.name for b in bestRoute])
+    print()
+    print("First attempt")
+    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=popSize, bestPopSize=bestPopSize, mutationRate=mutationRate, generations=generations)
+    print(f"First attempt best route: {[b.name for b in bestRoute]}")
+    print()
+
+    print("Second attempt")
+    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=popSize, bestPopSize=bestPopSize, mutationRate=mutationRate, generations=generations)
+    print(f"Second attempt best route: {[b.name for b in bestRoute]}")
+    print()
+
+    print("Third attempt")
+    bestRoute = GeneticAlgorithm(firstRoute).Start(pop=firstRoute, popSize=popSize, bestPopSize=bestPopSize, mutationRate=mutationRate, generations=generations)
+    print(f"Third attempt best route: {[b.name for b in bestRoute]}")
 
 
 
